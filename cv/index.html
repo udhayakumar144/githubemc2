@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Udhayakumar S - Full Stack Developer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            background: #0f172a;
+            color: #f8fafc;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Three.js Canvas */
+        #three-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+
+        /* Content Styling */
+        .content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .floating {
+            animation: floating 6s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0% {
+                transform: translate(0, 0px);
+            }
+            50% {
+                transform: translate(0, 15px);
+            }
+            100% {
+                transform: translate(0, -0px);
+            }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+            }
+        }
+        
+        .typing {
+            overflow: hidden;
+            border-right: .15em solid #3b82f6;
+            white-space: nowrap;
+            margin: 0 auto;
+            animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite;
+        }
+        
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #3b82f6; }
+        }
+        
+        .slide-in {
+            animation: slideIn 1s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Enhanced Card Hover Effects */
+        .card-hover {
+            position: relative;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+        }
+        
+        .card-hover::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+            transition: left 0.6s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-15px) scale(1.02);
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.3),
+                0 0 0 1px rgba(59, 130, 246, 0.2),
+                0 0 50px rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+        
+        .card-hover:hover::before {
+            left: 100%;
+        }
+        
+        .card-hover .hover-glow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at var(--x) var(--y), rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .card-hover:hover .hover-glow {
+            opacity: 1;
+        }
+        
+        /* Skill card specific hover */
+        .skill-card:hover {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+        }
+        
+        .skill-card:hover i {
+            transform: scale(1.2);
+            color: #3b82f6;
+        }
+        
+        /* Project card specific hover */
+        .project-card:hover .project-icon {
+            transform: scale(1.3) rotate(10deg);
+            color: #8b5cf6;
+        }
+        
+        /* Education card specific hover */
+        .education-card:hover h4 {
+            color: #3b82f6;
+        }
+        
+        /* Contact card specific hover */
+        .contact-card:hover .contact-item {
+            transform: translateX(10px);
+        }
+
+        /* Photo Styling */
+        .profile-photo {
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #3b82f6;
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+            transition: all 0.4s ease;
+        }
+
+        .photo-container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .photo-frame {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #3b82f6, #8b5cf6, #06b6d4);
+            padding: 8px;
+            transition: all 0.4s ease;
+        }
+
+        .photo-container:hover .photo-frame {
+            transform: scale(1.05) rotate(5deg);
+            box-shadow: 0 0 50px rgba(59, 130, 246, 0.5);
+        }
+
+        .photo-container:hover .profile-photo {
+            transform: scale(1.05);
+            box-shadow: 0 0 40px rgba(59, 130, 246, 0.7);
+        }
+
+        .photo-glow {
+            position: absolute;
+            width: 320px;
+            height: 320px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #3b82f6, #8b5cf6, #06b6d4);
+            filter: blur(20px);
+            opacity: 0.5;
+            z-index: -1;
+            animation: pulse-glow 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.7;
+            }
+        }
+
+        /* Instagram icon styling */
+        .instagram-icon {
+            background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transition: all 0.3s ease;
+        }
+
+        .social-icon:hover {
+            transform: scale(1.2);
+        }
+
+        /* Navigation hover effects */
+        .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #3b82f6;
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        /* Button hover effects */
+        .btn-hover {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .btn-hover::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-hover:hover::before {
+            left: 100%;
+        }
+
+        .btn-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Scroll animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease-out;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Floating elements animation */
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        .float-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Three.js Canvas -->
+    <canvas id="three-canvas"></canvas>
+
+    <!-- Content -->
+    <div class="content">
+        <!-- Navigation -->
+        <nav class="fixed w-full z-50 bg-slate-900/80 backdrop-blur-sm">
+            <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+                <div class="text-2xl font-bold text-blue-400 float-animation">Udhayakumar</div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#home" class="text-slate-300 hover:text-blue-400 transition-colors nav-link">Home</a>
+                    <a href="#about" class="text-slate-300 hover:text-blue-400 transition-colors nav-link">About</a>
+                    <a href="#skills" class="text-slate-300 hover:text-blue-400 transition-colors nav-link">Skills</a>
+                    <a href="#projects" class="text-slate-300 hover:text-blue-400 transition-colors nav-link">Projects</a>
+                    <a href="#contact" class="text-slate-300 hover:text-blue-400 transition-colors nav-link">Contact</a>
+                </div>
+                <div class="md:hidden">
+                    <button id="menu-btn" class="text-slate-300 focus:outline-none hover:text-blue-400 transition-colors">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="hidden md:hidden bg-slate-800/90 backdrop-blur-sm px-6 py-4">
+                <a href="#home" class="block py-2 text-slate-300 hover:text-blue-400 transition-colors nav-link">Home</a>
+                <a href="#about" class="block py-2 text-slate-300 hover:text-blue-400 transition-colors nav-link">About</a>
+                <a href="#skills" class="block py-2 text-slate-300 hover:text-blue-400 transition-colors nav-link">Skills</a>
+                <a href="#projects" class="block py-2 text-slate-300 hover:text-blue-400 transition-colors nav-link">Projects</a>
+                <a href="#contact" class="block py-2 text-slate-300 hover:text-blue-400 transition-colors nav-link">Contact</a>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <section id="home" class="min-h-screen flex items-center pt-16">
+            <div class="container mx-auto px-6 py-20 flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 mb-10 md:mb-0 slide-in">
+                    <h1 class="text-4xl md:text-6xl font-bold mb-4">Udhayakumar S</h1>
+                    <h2 class="text-2xl md:text-3xl text-blue-400 mb-6 typing">Full Stack Developer</h2>
+                    <p class="text-lg text-slate-300 mb-8 max-w-lg">
+                        Building scalable, user-focused web applications with expertise in end-to-end development, problem-solving, and collaborative teamwork.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#projects" class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors pulse btn-hover">View Projects</a>
+                        <a href="#contact" class="px-6 py-3 border border-blue-500 text-blue-400 rounded-lg hover:bg-blue-500/10 transition-colors btn-hover">Contact Me</a>
+                    </div>
+                </div>
+                <div class="md:w-1/2 flex justify-center">
+                    <div class="photo-container floating">
+                        <div class="photo-glow"></div>
+                        <div class="photo-frame">
+                            <!-- Replace the src with your actual photo URL -->
+                            <img src="uk.jpg" 
+                                 alt="Udhayakumar S" class="profile-photo">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="py-20">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl md:text-4xl font-bold text-center mb-16 fade-in">About Me</h2>
+                <div class="flex flex-col md:flex-row items-center">
+                    <div class="md:w-1/2 mb-10 md:mb-0">
+                        <div class="card-hover p-8 rounded-2xl fade-in" style="position: relative;">
+                            <div class="hover-glow" style="--x: 50%; --y: 50%;"></div>
+                            <h3 class="text-2xl font-bold mb-4 text-blue-400">Objective</h3>
+                            <p class="text-slate-300 mb-6">
+                                Full Stack Software Developer with proven experience in building scalable, user-focused web applications. 
+                                Skilled in end-to-end development, problem-solving, and collaborative teamwork. 
+                                Seeking to contribute to innovative projects and drive business growth through high-quality software solutions.
+                            </p>
+                            <div class="flex space-x-4">
+                                <a href="https://www.linkedin.com/in/udhayakumar-s-349a34283" target="_blank" class="text-slate-300 hover:text-blue-400 transition-colors social-icon">
+                                    <i class="fab fa-linkedin text-2xl"></i>
+                                </a>
+                                <a href="https://www.instagram.com/_udhaya11_?igsh=MXE0cHR4cGp2cGt3dQ==" target="_blank" class="text-slate-300 hover:text-pink-500 transition-colors social-icon">
+                                    <i class="fab fa-instagram text-2xl instagram-icon"></i>
+                                </a>
+                                <a href="mailto:s.udhayakumar144@gmail.com" class="text-slate-300 hover:text-blue-400 transition-colors social-icon">
+                                    <i class="fas fa-envelope text-2xl"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="md:w-1/2 md:pl-10">
+                        <div class="card-hover p-8 rounded-2xl education-card fade-in" style="position: relative;">
+                            <div class="hover-glow" style="--x: 50%; --y: 50%;"></div>
+                            <h3 class="text-2xl font-bold mb-6 text-blue-400">Education</h3>
+                            <div class="space-y-6">
+                                <div>
+                                    <h4 class="text-lg font-semibold transition-colors duration-300">B.Tech Information Technology (CGPA: 7.50%)</h4>
+                                    <p class="text-slate-400">J.K.K.Munirajah College Of Technology, T.N.Palayam</p>
+                                    <p class="text-slate-500 text-sm">2022-2026</p>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-semibold transition-colors duration-300">HSC (50%)</h4>
+                                    <p class="text-slate-400">Govt HR Sec School A.S Playam</p>
+                                    <p class="text-slate-500 text-sm">2021-2022</p>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-semibold transition-colors duration-300">SSLC (61%)</h4>
+                                    <p class="text-slate-400">Govt High School Punnam</p>
+                                    <p class="text-slate-500 text-sm">2019-2020</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Skills Section -->
+        <section id="skills" class="py-20">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl md:text-4xl font-bold text-center mb-16 fade-in">Technical Skills</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="card-hover p-6 rounded-2xl skill-card fade-in" style="position: relative;">
+                        <div class="hover-glow" style="--x: 50%; --y: 50%;"></div>
+                        <div class="text-blue-400 mb-4">
+                            <i class="fas fa-code text-4xl transition-transform duration-300"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-4">Frontend</h3>
+                        <ul class="text-slate-300 space-y-2">
+                            <li class="hover:text-blue-400 transition-colors">HTML</li>
+                            <li class="hover:text-blue-400 transition-colors">CSS</li>
+                            <li class="hover:text-blue-400 transition-colors">Bootstrap</li>
+                            <li class="hover:text-blue-400 transition-colors">Tailwind CSS</li>
+                            <li class="hover:text-blue-400 transition-colors">JavaScript</li>
+                        </ul>
+                    </div>
+                    <div class="card-hover p-6 rounded-2xl skill-card fade-in" style="position: relative;">
+                        <div class="hover-glow" style="--x: 50%; --y: 50%;"></div>
+                        <div class="text-blue-400 mb-4">
+                            <i class="fas fa-server text-4xl transition-transform duration-300"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-4">Backend</h3>
+                        <ul class="text-slate-300 space-y-2">
+                            <li class="hover:text-blue-400 transition-colors">C#</li>
+                            <li class="hover:text-blue-400 transition-colors">.NET</li>
+                            <li class="hover:text-blue-400 transition-colors">Python</li>
+                        </ul>
+                    </div>
+                    <div class="card-hover p-6 rounded-2xl skill-card fade-in" style="position: relative;">
+                        <div class="hover-glow" style="--x: 50%; --y: 50%;"></div>
+                        <div class="text-blue-400 mb-4">
+                            <i class="fas fa-database text-4xl transition-transform duration-300"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-4">Database</h3>
+                        <ul class="text-slate-300 space-y-2">
+                            <li class="hover:text-blue-400 transition-colors">PostgreSQL</li>
+                            <li class="hover:text-blue-400 transition-colors">SQL Server</li>
+                        </ul>
+                    </div>
+                    <div class="card-hover p-6 rounded-2xl skill-card fade-in" style="position: relative;">
+                        <div class="hover-glow" style="--x: 50%; --y: 50%;"></div>
+                        <div class="text-blue-400 mb-4">
+                            <i class="fas fa-tools text-4xl transition-transform duration-300"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-4">Tools</h3>
+                        <ul class="text-slate-300 space-y-2">
+                            <li class="hover:text-blue-400 transition-colors">Git</li>
+                            <li class="hover:text-blue-400 transition-colors">GitHub</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Projects Section -->
+        <section id="projects" class="py-20">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl md:text-4xl font-bold text-center mb-16 fade-in">Projects</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="card-hover p-8 rounded-2xl project-card fade-in" style="position: relative;">
+                        <div class="hover-glow" style="--x: 50%; --y: 50%;"></div>
+                        <div class="text-blue-400 mb-4">
+                            <i class="fas fa-eye text-4xl project-icon transition-transform duration-300"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4">Camera-based Crowd Analytics & Object Detection</h3>
+                        <p class="text-slate-300 mb-6">
+                            Developed a real-time vision system using Python and OpenCV to detect objects and analyze crowd density with high accuracy for monitoring and safety applications.
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm hover:bg-blue-500/30 transition-colors">Python</span>
+                            <span class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm hover:bg-blue-500/30 transition-colors">OpenCV</span>
+                            <span class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm hover:bg-blue-500/30 transition-colors">Computer Vision</span>
+                        </div>
+                    </div>
+                    <div class="card-hover p-8 rounded-2xl project-card fade-in" style="position: relative;">
+                        <div class="hover-glow" style="--x: 50%; --y: 50%;"></div>
+                        <div class="text-blue-400 mb-4">
+                            <i class="fas fa-graduation-cap text-4xl project-icon transition-transform duration-300"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4">Campus Core – Student Management System</h3>
+                        <p class="text-slate-300 mb-6">
+                            Developed a full-stack web application with ASP.NET Web API backend and PostgreSQL database, integrated with a React.js frontend for managing student records and parent records efficiently.
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm hover:bg-blue-500/30 transition-colors">ASP.NET</span>
+                            <span class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm hover:bg-blue-500/30 transition-colors">PostgreSQL</span>
+                            <span class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm hover:bg-blue-500/30 transition-colors">React.js</span>
+                            <span class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm hover:bg-blue-500/30 transition-colors">Full Stack</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Internship Section -->
+        <section class="py-20">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl md:text-4xl font-bold text-center mb-16 fade-in">Internship</h2>
+                <div class="max-w-3xl mx-auto card-hover p-8 rounded-2xl fade-in" style="position: relative;">
+                    <div class="hover-glow" style="--x: 50%; --y: 50%;"></div>
+                    <div class="flex items-center mb-6">
+                        <div class="text-blue-400 mr-4">
+                            <i class="fas fa-briefcase text-4xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold">Ether InoTech, Coimbatore</h3>
+                            <p class="text-slate-400">Fullstack Python Internship (July 2025)</p>
+                        </div>
+                    </div>
+                    <p class="text-slate-300">
+                        Completed a 15-days Fullstack Python Internship focused on front-end and full-stack web development using industry-standard tools and technologies.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="py-20">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl md:text-4xl font-bold text-center mb-16 fade-in">Get In Touch</h2>
+                <div class="max-w-4xl mx-auto">
+                    <div class="card-hover p-8 rounded-2xl contact-card fade-in" style="position: relative;">
+                        <div class="hover-glow" style="--x: 50%; --y: 50%;"></div>
+                        <h3 class="text-2xl font-bold mb-6 text-blue-400">Contact Information</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center contact-item transition-transform duration-300">
+                                <i class="fas fa-envelope text-blue-400 mr-4"></i>
+                                <a href="mailto:s.udhayakumar144@gmail.com" class="text-slate-300 hover:text-blue-400 transition-colors">s.udhayakumar144@gmail.com</a>
+                            </div>
+                            <div class="flex items-center contact-item transition-transform duration-300">
+                                <i class="fas fa-phone text-blue-400 mr-4"></i>
+                                <a href="tel:9524785164" class="text-slate-300 hover:text-blue-400 transition-colors">9524785164</a>
+                            </div>
+                            <div class="flex items-center contact-item transition-transform duration-300">
+                                <i class="fab fa-linkedin text-blue-400 mr-4"></i>
+                                <a href="https://www.linkedin.com/in/udhayakumar-s-349a34283" target="_blank" class="text-slate-300 hover:text-blue-400 transition-colors">LinkedIn Profile</a>
+                            </div>
+                            <div class="flex items-center contact-item transition-transform duration-300">
+                                <i class="fab fa-instagram text-blue-400 mr-4 instagram-icon"></i>
+                                <a href="https://www.instagram.com/_udhaya11_?igsh=MXE0cHR4cGp2cGt3dQ==" target="_blank" class="text-slate-300 hover:text-pink-500 transition-colors">Instagram Profile</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="py-8 bg-slate-900/80 backdrop-blur-sm">
+            <div class="container mx-auto px-6 text-center">
+                <p class="text-slate-400">© 2025 Udhayakumar S. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Three.js Scene Setup
+        let scene, camera, renderer, particles, particleSystem;
+        let mouseX = 0, mouseY = 0;
+        
+        function initThreeJS() {
+            // Scene
+            scene = new THREE.Scene();
+            
+            // Camera
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 30;
+            
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ 
+                canvas: document.getElementById('three-canvas'),
+                alpha: true,
+                antialias: true 
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            
+            // Create floating geometry
+            createFloatingGeometry();
+            
+            // Add ambient light
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+            scene.add(ambientLight);
+            
+            // Add directional light
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(1, 1, 1);
+            scene.add(directionalLight);
+            
+            // Mouse move listener for interactive effects
+            document.addEventListener('mousemove', onMouseMove);
+            
+            // Handle window resize
+            window.addEventListener('resize', onWindowResize);
+            
+            // Start animation
+            animate();
+        }
+        
+        function createFloatingGeometry() {
+            // Clear existing particles
+            if (particleSystem) {
+                scene.remove(particleSystem);
+            }
+            
+            // Create multiple types of floating geometry
+            createParticleField();
+            createFloatingShapes();
+            createOrbitingSpheres();
+        }
+        
+        function createParticleField() {
+            const particlesGeometry = new THREE.BufferGeometry();
+            const count = 2000;
+            
+            const positions = new Float32Array(count * 3);
+            const colors = new Float32Array(count * 3);
+            const sizes = new Float32Array(count);
+            
+            for(let i = 0; i < count * 3; i += 3) {
+                // Random positions in a sphere
+                const radius = 50;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos((Math.random() * 2) - 1);
+                
+                positions[i] = radius * Math.sin(phi) * Math.cos(theta);
+                positions[i + 1] = radius * Math.sin(phi) * Math.sin(theta);
+                positions[i + 2] = radius * Math.cos(phi);
+                
+                // Random colors with blue/purple theme
+                colors[i] = Math.random() * 0.3 + 0.7; // R
+                colors[i + 1] = Math.random() * 0.4 + 0.3; // G
+                colors[i + 2] = Math.random() * 0.5 + 0.5; // B
+                
+                // Random sizes
+                sizes[i / 3] = Math.random() * 0.5 + 0.1;
+            }
+            
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            particlesGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+            
+            const particlesMaterial = new THREE.PointsMaterial({
+                size: 0.5,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.8,
+                sizeAttenuation: true
+            });
+            
+            particleSystem = new THREE.Points(particlesGeometry, particlesMaterial);
+            scene.add(particleSystem);
+        }
+        
+        function createFloatingShapes() {
+            // Create torus knots
+            const torusGeometry = new THREE.TorusKnotGeometry(8, 3, 100, 16);
+            const torusMaterial = new THREE.MeshPhongMaterial({
+                color: 0x3b82f6,
+                transparent: true,
+                opacity: 0.3,
+                wireframe: true
+            });
+            
+            for (let i = 0; i < 3; i++) {
+                const torus = new THREE.Mesh(torusGeometry, torusMaterial);
+                torus.position.x = (Math.random() - 0.5) * 60;
+                torus.position.y = (Math.random() - 0.5) * 60;
+                torus.position.z = (Math.random() - 0.5) * 60;
+                torus.rotation.x = Math.random() * Math.PI;
+                torus.rotation.y = Math.random() * Math.PI;
+                scene.add(torus);
+            }
+        }
+        
+        function createOrbitingSpheres() {
+            const sphereGeometry = new THREE.SphereGeometry(2, 32, 32);
+            const sphereMaterial = new THREE.MeshPhongMaterial({
+                color: 0x06b6d4,
+                transparent: true,
+                opacity: 0.4
+            });
+            
+            for (let i = 0; i < 8; i++) {
+                const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+                const radius = 15 + Math.random() * 20;
+                const angle = (i / 8) * Math.PI * 2;
+                
+                sphere.position.x = Math.cos(angle) * radius;
+                sphere.position.z = Math.sin(angle) * radius;
+                sphere.position.y = (Math.random() - 0.5) * 10;
+                
+                scene.add(sphere);
+            }
+        }
+        
+        function onMouseMove(event) {
+            mouseX = (event.clientX - window.innerWidth / 2) * 0.0005;
+            mouseY = (event.clientY - window.innerHeight / 2) * 0.0005;
+            
+            // Update hover glow positions for cards
+            document.querySelectorAll('.card-hover').forEach(card => {
+                const rect = card.getBoundingClientRect();
+                const x = ((event.clientX - rect.left) / rect.width) * 100;
+                const y = ((event.clientY - rect.top) / rect.height) * 100;
+                
+                const glow = card.querySelector('.hover-glow');
+                if (glow) {
+                    glow.style.setProperty('--x', `${x}%`);
+                    glow.style.setProperty('--y', `${y}%`);
+                }
+            });
+        }
+        
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        
+        let time = 0;
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.01;
+            
+            // Rotate particle system
+            if (particleSystem) {
+                particleSystem.rotation.x += 0.0002;
+                particleSystem.rotation.y += 0.0003;
+                
+                // Gentle floating motion for particles
+                const positions = particleSystem.geometry.attributes.position.array;
+                for (let i = 0; i < positions.length; i += 3) {
+                    positions[i] += Math.sin(time + i) * 0.002;
+                    positions[i + 1] += Math.cos(time + i * 0.5) * 0.002;
+                }
+                particleSystem.geometry.attributes.position.needsUpdate = true;
+            }
+            
+            // Rotate all children (shapes)
+            scene.children.forEach((child, index) => {
+                if (child instanceof THREE.Mesh && child !== particleSystem) {
+                    child.rotation.x += 0.002;
+                    child.rotation.y += 0.003;
+                    child.rotation.z += 0.001;
+                    
+                    // Gentle floating motion
+                    child.position.y += Math.sin(time + index) * 0.005;
+                }
+            });
+            
+            // Camera movement based on mouse
+            camera.position.x += (mouseX - camera.position.x) * 0.05;
+            camera.position.y += (-mouseY - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+            
+            renderer.render(scene, camera);
+        }
+        
+        // Mobile menu toggle
+        document.getElementById('menu-btn').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                    
+                    // Close mobile menu if open
+                    const mobileMenu = document.getElementById('mobile-menu');
+                    if (!mobileMenu.classList.contains('hidden')) {
+                        mobileMenu.classList.add('hidden');
+                    }
+                }
+            });
+        });
+
+        // Scroll animations
+        const fadeElements = document.querySelectorAll('.fade-in');
+        
+        const fadeObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        fadeElements.forEach(el => fadeObserver.observe(el));
+
+        // Initialize when page loads
+        window.addEventListener('load', function() {
+            initThreeJS();
+        });
+    </script>
+</body>
+</html>
